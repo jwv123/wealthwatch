@@ -13,10 +13,16 @@ WealthWatch is a full-stack **Smart Budget Management System** SPA. Users can tr
 ## Directory Structure
 ```
 wealthwatch/
+├── api/                    # Vercel serverless functions
+│   ├── index.ts            # Express API handler (imports from backend/src/app)
+│   └── test.ts             # API health-check diagnostic endpoint
 ├── brand-assets/           # Logo + brand-assets-guideline.md
+├── build-vercel.sh         # Vercel build script (compile backend + build frontend)
+├── vercel.json             # Vercel deployment config
+├── package.json            # Root package with build scripts + backend deps
 ├── kie-media-generator/    # KIE AI MCP skill for image/video generation
 ├── test/                   # ALL development and changes occur here
-│   ├── backend/            # Express API (src/ with config, middleware, routes, controllers, services, types)
+│   ├── backend/            # Express API (src/ with app.ts, config, middleware, routes, controllers, services, types)
 │   ├── frontend/           # Angular app (src/app/ with core, shared, features, stores, layout; core/currency for CurrencyService; features/calendar for CalendarComponent)
 │   ├── supabase/           # SQL migrations (00001-00006)
 │   └── docs/               # 6 documentation guides (setup, migrations, API, frontend, deployment, brand)
@@ -97,14 +103,15 @@ Before making any code changes or generating UI components, you **must** perform
 
 ## Deployment (Vercel)
 - **Both frontend and backend deploy to Vercel** as a single project.
-- **Backend** runs as a Vercel serverless function via `api/[...path].ts`, which imports the Express app from `test/backend/dist/app.js`.
+- **Backend** runs as a Vercel serverless function via `api/index.ts`, which imports the Express app directly from `test/backend/src/app.ts` (esbuild bundles everything at deploy time — no pre-compilation needed for the function).
 - **Frontend** is served as a static Angular SPA. Build output: `test/frontend/dist/wealthwatch/browser/`.
-- **`vercel.json`** configures builds and routes: `/api/*` → serverless function, everything else → `index.html` (SPA rewrite).
+- **`vercel.json`** uses `buildCommand` + `outputDirectory` (no `builds`). A rewrite routes `/api/:path*` to `/api/index?__path=/api/:path*` so the serverless function receives the original URL path. SPA rewrite sends everything else to `index.html`.
+- **Vercel catch-all `[...path].ts` does NOT work** with `buildCommand`/`outputDirectory` — Vercel ignores it and returns 405. Use a plain `api/index.ts` + rewrite instead.
+- **Build script** — `build-vercel.sh` compiles backend TypeScript (`tsc`), installs frontend deps with `NODE_ENV=development npm install --legacy-peer-deps`, then builds Angular with `./node_modules/.bin/ng build --configuration production`. `NODE_ENV=development` is required so npm installs `devDependencies` like `@angular/cli`; `--legacy-peer-deps` resolves `@angular/cdk` peer dependency conflicts.
 - **App separation** — `test/backend/src/app.ts` creates and exports the Express app; `test/backend/src/index.ts` imports it and calls `app.listen()` for local dev only. The Vercel entry point imports `app` directly without starting a server.
 - **API URL** — In production, the frontend uses a relative URL (`/api`) since both are on the same domain, avoiding CORS entirely. `environment.production.ts` has `apiBaseUrl: '/api'`.
 - **Environment variables** — Set in Vercel dashboard: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `CORS_ORIGIN` (set to the Vercel deployment URL), `NODE_ENV=production`.
 - **Rate limiter caveat** — `express-rate-limit` uses in-memory storage; each serverless cold start has a fresh store. Rate limiting is per-invocation, not global. For production-grade rate limiting, use Vercel Edge Middleware or Upstash Redis.
-- **Build command** — `npm run build` at project root (runs `build:backend` then `build:frontend`).
 
 ## Development Commands
 - **Backend:** `cd test/backend && npm run dev` (starts Express on port 3001 with hot reload)
@@ -112,7 +119,7 @@ Before making any code changes or generating UI components, you **must** perform
 - **Supabase:** `supabase start` for local dev, `supabase db push` to apply migrations
 - **Build frontend:** `ng build --configuration production`
 - **Build backend:** `cd test/backend && npm run build` (compiles TypeScript to `dist/`)
-- **Build all:** `npm run build` at project root (compiles backend + builds frontend)
+- **Build for Vercel:** `bash build-vercel.sh` (compiles backend + builds frontend)
 - **Root scripts:** `npm run dev` runs both backend and frontend concurrently
 
 ## Generated Visual Assets
