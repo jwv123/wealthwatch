@@ -8,5 +8,5 @@ npm run build
 
 echo "=== Building frontend ==="
 cd ../frontend
-npm install --legacy-peer-deps
+NODE_ENV=development npm install --legacy-peer-deps
 ./node_modules/.bin/ng build --configuration production
