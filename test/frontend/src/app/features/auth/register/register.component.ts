@@ -255,13 +255,13 @@ export class RegisterComponent {
     const { email, password, display_name } = this.form.value;
 
     this.authService.register({ email, password, display_name: display_name || undefined }).subscribe({
-      next: (response) => {
+      next: async (response) => {
         if (response.confirmationRequired) {
           AuthStore.setError(null);
           this.router.navigate(['/login'], { queryParams: { confirmed: 'pending' } });
           return;
         }
-        this.authService.handleLogin(response);
+        await this.authService.handleLogin(response);
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {

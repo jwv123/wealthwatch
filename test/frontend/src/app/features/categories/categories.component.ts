@@ -89,10 +89,11 @@ export class CategoriesComponent implements OnInit {
   constructor(private categoriesService: CategoriesService) {}
 
   ngOnInit(): void {
-    this.loadCategories();
+    this.loadCategoriesIfNeeded();
   }
 
-  private loadCategories(): void {
+  private loadCategoriesIfNeeded(): void {
+    if (CategoryStore.categories().length > 0 && !CategoryStore.isLoading()) return;
     CategoryStore.setLoading(true);
     this.categoriesService.list().subscribe({
       next: (data) => CategoryStore.setCategories(data),

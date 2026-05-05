@@ -268,8 +268,8 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadTransactions();
-    this.loadCategories();
+    this.loadTransactionsIfNeeded();
+    this.loadCategoriesIfNeeded();
     this.loadReports();
   }
 
@@ -315,7 +315,8 @@ export class DashboardComponent implements OnInit {
     }
   }
 
-  private loadTransactions(): void {
+  private loadTransactionsIfNeeded(): void {
+    if (TransactionStore.transactions().length > 0 && !TransactionStore.isLoading()) return;
     TransactionStore.setLoading(true);
     this.http.get<any[]>(`${environment.apiBaseUrl}/transactions`).subscribe({
       next: (data) => TransactionStore.setTransactions(data),
@@ -323,7 +324,8 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  private loadCategories(): void {
+  private loadCategoriesIfNeeded(): void {
+    if (CategoryStore.categories().length > 0 && !CategoryStore.isLoading()) return;
     CategoryStore.setLoading(true);
     this.http.get<any[]>(`${environment.apiBaseUrl}/categories`).subscribe({
       next: (data) => CategoryStore.setCategories(data),

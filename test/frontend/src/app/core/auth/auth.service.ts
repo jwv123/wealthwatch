@@ -5,6 +5,9 @@ import { environment } from '../../../environments/environment';
 import { LoginRequest, RegisterRequest, AuthResponse } from '../../shared/models/auth.models';
 import { Profile } from '../../shared/models/profile.model';
 import { AuthStore } from '../../stores/auth.store';
+import { TransactionStore } from '../../stores/transaction.store';
+import { CategoryStore } from '../../stores/category.store';
+import { DashboardStore } from '../../stores/dashboard.store';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -32,30 +35,40 @@ export class AuthService {
     return this.http.get<Profile>(`${this.apiUrl}/auth/profile`);
   }
 
-  handleLogin(response: AuthResponse): void {
-    if (!response.access_token || !response.refresh_token) return;
+  handleLogin(response: AuthResponse): Promise<void> {
+    if (!response.access_token || !response.refresh_token) return Promise.resolve();
     AuthStore.setToken(response.access_token);
     localStorage.setItem('ww_token', response.access_token);
     localStorage.setItem('ww_refresh_token', response.refresh_token);
 
-    AuthStore.setUser({
-      id: response.user.id,
-      email: response.user.email,
-      display_name: null,
-      avatar_url: null,
-      default_currency: 'USD',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
-
-    this.getProfile().subscribe({
-      next: (profile) => AuthStore.setUser(profile),
-      error: () => { /* keep synthetic profile */ },
+    return new Promise((resolve) => {
+      this.getProfile().subscribe({
+        next: (profile) => {
+          AuthStore.setUser(profile);
+          resolve();
+        },
+        error: () => {
+          // Fallback to synthetic profile if getProfile fails
+          AuthStore.setUser({
+            id: response.user.id,
+            email: response.user.email,
+            display_name: null,
+            avatar_url: null,
+            default_currency: 'USD',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+          resolve();
+        },
+      });
     });
   }
 
   handleLogout(): void {
     AuthStore.reset();
+    TransactionStore.reset();
+    CategoryStore.reset();
+    DashboardStore.reset();
     localStorage.removeItem('ww_token');
     localStorage.removeItem('ww_refresh_token');
   }

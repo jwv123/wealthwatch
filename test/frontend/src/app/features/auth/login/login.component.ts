@@ -245,8 +245,8 @@ export class LoginComponent {
     AuthStore.setError(null);
 
     this.authService.login(this.form.value).subscribe({
-      next: (response) => {
-        this.authService.handleLogin(response);
+      next: async (response) => {
+        await this.authService.handleLogin(response);
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {

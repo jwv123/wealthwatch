@@ -105,10 +105,11 @@ export class TransactionsComponent implements OnInit {
   constructor(private transactionsService: TransactionsService) {}
 
   ngOnInit(): void {
-    this.loadTransactions();
+    this.loadTransactionsIfNeeded();
   }
 
-  private loadTransactions(): void {
+  private loadTransactionsIfNeeded(): void {
+    if (TransactionStore.transactions().length > 0 && !TransactionStore.isLoading()) return;
     TransactionStore.setLoading(true);
     this.transactionsService.list().subscribe({
       next: (data) => TransactionStore.setTransactions(data),
