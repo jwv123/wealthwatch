@@ -1,0 +1,252 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  /* Brand Colors */
+  --ww-green: #2ecc71;
+  --ww-navy: #0b3954;
+  --ww-blue: #2a5c82;
+  --ww-blue-rgb: 42, 92, 130;
+
+  /* Backgrounds */
+  --ww-bg-page: #f8f9fa;
+  --ww-bg-card: #ffffff;
+
+  /* Text */
+  --ww-text-main: #555555;
+  --ww-text-header: #0b3954;
+
+  /* Borders */
+  --ww-border: #e1e4e8;
+
+  /* Alert */
+  --ww-red: #e74c3c;
+
+  /* Shadows */
+  --ww-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+
+  /* Border Radius */
+  --ww-radius: 6px;
+
+  /* Font Families */
+  --ww-font-heading: 'Montserrat', sans-serif;
+  --ww-font-body: 'Montserrat', sans-serif;
+  --ww-font-data: 'JetBrains Mono', monospace;
+
+  /* Glassmorphism */
+  --ww-glass-bg: rgba(255, 255, 255, 0.65);
+  --ww-glass-border: rgba(255, 255, 255, 0.4);
+  --ww-glass-blur: 12px;
+  --ww-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --ww-glass-nav-bg: rgba(11, 57, 84, 0.85);
+  --ww-glass-sidebar-bg: rgba(255, 255, 255, 0.7);
+
+  /* Chart Colors */
+  --ww-chart-grid: #e1e4e8;
+  --ww-chart-label: #555555;
+  --ww-chart-legend: #555555;
+
+  /* Status backgrounds */
+  --ww-bg-error: #fef2f2;
+  --ww-bg-success: #ecfdf5;
+  --ww-text-success: #065f46;
+
+  /* Input */
+  --ww-input-bg: #ffffff;
+}
+
+[data-theme="dark"] {
+  /* Brand Colors (lightened for dark backgrounds) */
+  --ww-green: #3ddc84;
+  --ww-navy: #1a4a6e;
+  --ww-blue: #4a8db7;
+  --ww-blue-rgb: 74, 141, 183;
+
+  /* Backgrounds */
+  --ww-bg-page: #0d1117;
+  --ww-bg-card: #161b22;
+
+  /* Text */
+  --ww-text-main: #b0b8c4;
+  --ww-text-header: #e2e8f0;
+
+  /* Borders */
+  --ww-border: #30363d;
+
+  /* Alert */
+  --ww-red: #ff6b6b;
+
+  /* Shadows */
+  --ww-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+
+  /* Glassmorphism */
+  --ww-glass-bg: rgba(22, 27, 34, 0.65);
+  --ww-glass-border: rgba(48, 54, 61, 0.5);
+  --ww-glass-blur: 16px;
+  --ww-glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --ww-glass-nav-bg: rgba(11, 57, 84, 0.9);
+  --ww-glass-sidebar-bg: rgba(22, 27, 34, 0.7);
+
+  /* Chart Colors */
+  --ww-chart-grid: #30363d;
+  --ww-chart-label: #b0b8c4;
+  --ww-chart-legend: #b0b8c4;
+
+  /* Status backgrounds */
+  --ww-bg-error: #3b1c1c;
+  --ww-bg-success: #1a3a2a;
+  --ww-text-success: #6ee7b7;
+
+  /* Input */
+  --ww-input-bg: #0d1117;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--ww-font-body);
+  color: var(--ww-text-main);
+  background-color: var(--ww-bg-page);
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(42, 92, 130, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(46, 204, 113, 0.08) 0%, transparent 40%);
+  background-attachment: fixed;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+[data-theme="dark"] body {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, rgba(42, 92, 130, 0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(46, 204, 113, 0.1) 0%, transparent 40%);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--ww-font-heading);
+  font-weight: 600;
+  color: var(--ww-text-header);
+}
+
+h1 { font-size: 2rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.25rem; }
+
+@media (max-width: 768px) {
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.125rem; }
+}
+
+code, pre, .ww-data {
+  font-family: var(--ww-font-data);
+}
+
+a {
+  color: var(--ww-blue);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Utility Classes */
+.ww-card {
+  background: var(--ww-glass-bg);
+  border: 1px solid var(--ww-glass-border);
+  border-radius: var(--ww-radius);
+  box-shadow: var(--ww-glass-shadow);
+  backdrop-filter: blur(var(--ww-glass-blur));
+  -webkit-backdrop-filter: blur(var(--ww-glass-blur));
+  padding: 1.5rem;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ww-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: var(--ww-radius);
+  font-family: var(--ww-font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, background-color 0.2s;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.ww-btn-primary {
+  @extend .ww-btn;
+  background-color: var(--ww-blue);
+  color: #fff;
+}
+
+.ww-btn-success {
+  @extend .ww-btn;
+  background-color: var(--ww-green);
+  color: #fff;
+}
+
+.ww-btn-danger {
+  @extend .ww-btn;
+  background-color: var(--ww-red);
+  color: #fff;
+}
+
+.ww-input {
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--ww-border);
+  border-radius: var(--ww-radius);
+  font-family: var(--ww-font-body);
+  font-size: 0.875rem;
+  color: var(--ww-text-main);
+  background-color: var(--ww-input-bg);
+  transition: border-color 0.2s, background-color 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--ww-blue);
+  }
+}
+
+.ww-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  color: var(--ww-text-header);
+}
+
+/* Mixin equivalents as utility classes */
+.ww-text-income {
+  color: var(--ww-green);
+}
+
+.ww-text-expense {
+  color: var(--ww-red);
+}
+
+.ww-text-muted {
+  color: var(--ww-text-main);
+  opacity: 0.7;
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.*
+*.log
+.DS_Store
+.angular/
+.vercel/
+test/backend/dist/
+test/frontend/dist/

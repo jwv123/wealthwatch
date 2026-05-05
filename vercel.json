@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/[...path].ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["test/backend/dist/**", "test/backend/node_modules/**"]
+      }
+    },
+    {
+      "src": "test/frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/wealthwatch/browser"
+      }
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
