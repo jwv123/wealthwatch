@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd test/backend && npm install && npm run build && cd ../frontend && npm install --legacy-peer-deps && npx ng build --configuration production",
+  "buildCommand": "cd test/backend && npm install && npm run build && cd ../frontend && npm install --legacy-peer-deps && npm run build -- --configuration production",
   "outputDirectory": "test/frontend/dist/wealthwatch/browser",
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/:path*" },
