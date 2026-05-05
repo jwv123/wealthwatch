@@ -1,4 +1,4 @@
-import { supabaseClient, supabaseAdmin } from '../config/supabase';
+import { supabaseClient, supabaseAdmin, createAuthenticatedClient } from '../config/supabase';
 
 export async function login(email: string, password: string) {
   const { data, error } = await supabaseClient.auth.signInWithPassword({
@@ -34,8 +34,9 @@ export async function refreshToken(refreshToken: string) {
   return data;
 }
 
-export async function getProfile(userId: string) {
-  const { data, error } = await supabaseClient
+export async function getProfile(accessToken: string, userId: string) {
+  const client = createAuthenticatedClient(accessToken);
+  const { data, error } = await client
     .from('profiles')
     .select('*')
     .eq('id', userId)
@@ -44,8 +45,9 @@ export async function getProfile(userId: string) {
   return data;
 }
 
-export async function updateProfile(userId: string, updates: { default_currency?: string; display_name?: string }) {
-  const { data, error } = await supabaseClient
+export async function updateProfile(accessToken: string, userId: string, updates: { default_currency?: string; display_name?: string }) {
+  const client = createAuthenticatedClient(accessToken);
+  const { data, error } = await client
     .from('profiles')
     .update(updates)
     .eq('id', userId)

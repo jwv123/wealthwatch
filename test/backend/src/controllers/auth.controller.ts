@@ -51,7 +51,7 @@ export async function refresh(req: Request, res: Response): Promise<void> {
   try {
     const { refresh_token } = req.body;
     const data = await authService.refreshToken(refresh_token);
-    res.json(data);
+    res.json(formatAuthResponse(data));
   } catch (err: any) {
     res.status(err.statusCode ?? 500).json({ error: err.message });
   }
@@ -59,7 +59,8 @@ export async function refresh(req: Request, res: Response): Promise<void> {
 
 export async function getProfile(req: Request, res: Response): Promise<void> {
   try {
-    const profile = await authService.getProfile((req as any).userId);
+    const authReq = req as any;
+    const profile = await authService.getProfile(authReq.accessToken, authReq.userId);
     res.json(profile);
   } catch (err: any) {
     res.status(err.statusCode ?? 500).json({ error: err.message });
@@ -68,7 +69,8 @@ export async function getProfile(req: Request, res: Response): Promise<void> {
 
 export async function updateProfile(req: Request, res: Response): Promise<void> {
   try {
-    const profile = await authService.updateProfile((req as any).userId, req.body);
+    const authReq = req as any;
+    const profile = await authService.updateProfile(authReq.accessToken, authReq.userId, req.body);
     res.json(profile);
   } catch (err: any) {
     res.status(err.statusCode ?? 500).json({ error: err.message });

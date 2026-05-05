@@ -1,9 +1,9 @@
-import { supabaseClient } from '../config/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
 
-export async function getSummary(userId: string, year?: number) {
+export async function getSummary(client: SupabaseClient, userId: string, year?: number) {
   const isAllTime = year === undefined;
 
-  let query = supabaseClient
+  let query = client
     .from('transactions')
     .select('*, category:categories(*)')
     .eq('user_id', userId);
@@ -47,10 +47,10 @@ export async function getSummary(userId: string, year?: number) {
   };
 }
 
-export async function getMonthly(userId: string, year?: number) {
+export async function getMonthly(client: SupabaseClient, userId: string, year?: number) {
   const isAllTime = year === undefined;
 
-  let query = supabaseClient
+  let query = client
     .from('transactions')
     .select('type, amount, date')
     .eq('user_id', userId);
@@ -64,7 +64,6 @@ export async function getMonthly(userId: string, year?: number) {
   if (error) throw { statusCode: 500, message: error.message };
 
   if (isAllTime) {
-    // Group by year
     const yearMap = new Map<number, { income: number; expenses: number }>();
     for (const t of transactions) {
       const yr = new Date(t.date + 'T00:00:00').getFullYear();
@@ -84,7 +83,6 @@ export async function getMonthly(userId: string, year?: number) {
     };
   }
 
-  // Group by month for a specific year
   const months: { month: string; income: number; expenses: number }[] = [];
   for (let m = 0; m < 12; m++) {
     const monthStr = `${year}-${String(m + 1).padStart(2, '0')}`;

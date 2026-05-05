@@ -4,6 +4,7 @@ import { supabaseClient } from '../config/supabase';
 export interface AuthRequest extends Request {
   userId: string;
   userEmail: string;
+  accessToken: string;
 }
 
 export async function authMiddleware(
@@ -27,6 +28,7 @@ export async function authMiddleware(
   }
 
   (req as AuthRequest).userId = data.user.id;
-  (req as AuthRequest).userEmail = data.user.email!;
+  (req as AuthRequest).userEmail = data.user.email ?? '';
+  (req as AuthRequest).accessToken = token;
   next();
 }

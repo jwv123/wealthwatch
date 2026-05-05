@@ -1,4 +1,4 @@
-import { supabaseClient } from '../config/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { TransactionRow } from '../types/database';
 
 interface TransactionFilters {
@@ -9,10 +9,11 @@ interface TransactionFilters {
 }
 
 export async function getUserTransactions(
+  client: SupabaseClient,
   userId: string,
   filters: TransactionFilters = {}
 ): Promise<TransactionRow[]> {
-  let query = supabaseClient
+  let query = client
     .from('transactions')
     .select('*, category:categories(*)')
     .eq('user_id', userId)
@@ -29,10 +30,11 @@ export async function getUserTransactions(
 }
 
 export async function createTransaction(
+  client: SupabaseClient,
   userId: string,
   payload: Omit<TransactionRow, 'id' | 'user_id' | 'created_at' | 'updated_at' | 'category'>
 ): Promise<TransactionRow> {
-  const { data, error } = await supabaseClient
+  const { data, error } = await client
     .from('transactions')
     .insert({ ...payload, user_id: userId })
     .select('*, category:categories(*)')
@@ -43,11 +45,12 @@ export async function createTransaction(
 }
 
 export async function updateTransaction(
+  client: SupabaseClient,
   userId: string,
   transactionId: string,
   updates: Partial<Omit<TransactionRow, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
 ): Promise<TransactionRow> {
-  const { data, error } = await supabaseClient
+  const { data, error } = await client
     .from('transactions')
     .update(updates)
     .eq('id', transactionId)
@@ -60,8 +63,8 @@ export async function updateTransaction(
   return data;
 }
 
-export async function deleteTransaction(userId: string, transactionId: string): Promise<void> {
-  const { error } = await supabaseClient
+export async function deleteTransaction(client: SupabaseClient, userId: string, transactionId: string): Promise<void> {
+  const { error } = await client
     .from('transactions')
     .delete()
     .eq('id', transactionId)
@@ -70,8 +73,8 @@ export async function deleteTransaction(userId: string, transactionId: string): 
   if (error) throw { statusCode: 400, message: error.message };
 }
 
-export async function deleteAllTransactions(userId: string): Promise<void> {
-  const { error } = await supabaseClient
+export async function deleteAllTransactions(client: SupabaseClient, userId: string): Promise<void> {
+  const { error } = await client
     .from('transactions')
     .delete()
     .eq('user_id', userId);

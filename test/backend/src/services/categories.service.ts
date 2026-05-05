@@ -1,11 +1,12 @@
-import { supabaseClient } from '../config/supabase';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { CategoryRow } from '../types/database';
 
 export async function getUserCategories(
+  client: SupabaseClient,
   userId: string,
   type?: 'income' | 'expense'
 ): Promise<CategoryRow[]> {
-  let query = supabaseClient
+  let query = client
     .from('categories')
     .select('*')
     .eq('user_id', userId)
@@ -19,10 +20,11 @@ export async function getUserCategories(
 }
 
 export async function createCategory(
+  client: SupabaseClient,
   userId: string,
   payload: { name: string; type: 'income' | 'expense'; icon?: string; color?: string }
 ): Promise<CategoryRow> {
-  const { data, error } = await supabaseClient
+  const { data, error } = await client
     .from('categories')
     .insert({ ...payload, user_id: userId, is_default: false })
     .select('*')
@@ -33,11 +35,12 @@ export async function createCategory(
 }
 
 export async function updateCategory(
+  client: SupabaseClient,
   userId: string,
   categoryId: string,
   updates: Partial<Pick<CategoryRow, 'name' | 'type' | 'icon' | 'color'>>
 ): Promise<CategoryRow> {
-  const { data, error } = await supabaseClient
+  const { data, error } = await client
     .from('categories')
     .update(updates)
     .eq('id', categoryId)
@@ -50,8 +53,8 @@ export async function updateCategory(
   return data;
 }
 
-export async function deleteCategory(userId: string, categoryId: string): Promise<void> {
-  const { error } = await supabaseClient
+export async function deleteCategory(client: SupabaseClient, userId: string, categoryId: string): Promise<void> {
+  const { error } = await client
     .from('categories')
     .delete()
     .eq('id', categoryId)
@@ -60,17 +63,17 @@ export async function deleteCategory(userId: string, categoryId: string): Promis
   if (error) throw { statusCode: 400, message: error.message };
 }
 
-export async function resetToDefaults(userId: string): Promise<CategoryRow[]> {
-  const { error: delError } = await supabaseClient
+export async function resetToDefaults(client: SupabaseClient, userId: string): Promise<CategoryRow[]> {
+  const { error: delError } = await client
     .from('categories')
     .delete()
     .eq('user_id', userId);
 
   if (delError) throw { statusCode: 500, message: delError.message };
 
-  const { error: rpcError } = await supabaseClient.rpc('seed_default_categories', { p_user_id: userId });
+  const { error: rpcError } = await client.rpc('seed_default_categories', { p_user_id: userId });
 
   if (rpcError) throw { statusCode: 500, message: rpcError.message };
 
-  return getUserCategories(userId);
+  return getUserCategories(client, userId);
 }
