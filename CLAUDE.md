@@ -95,12 +95,24 @@ Before making any code changes or generating UI components, you **must** perform
 - **`SUPABASE_SERVICE_ROLE_KEY`** must never be exposed to the frontend — backend only.
 - **Angular environments** use file replacement at build time (`environment.ts` → `environment.production.ts`).
 
+## Deployment (Vercel)
+- **Both frontend and backend deploy to Vercel** as a single project.
+- **Backend** runs as a Vercel serverless function via `api/[...path].ts`, which imports the Express app from `test/backend/dist/app.js`.
+- **Frontend** is served as a static Angular SPA. Build output: `test/frontend/dist/wealthwatch/browser/`.
+- **`vercel.json`** configures builds and routes: `/api/*` → serverless function, everything else → `index.html` (SPA rewrite).
+- **App separation** — `test/backend/src/app.ts` creates and exports the Express app; `test/backend/src/index.ts` imports it and calls `app.listen()` for local dev only. The Vercel entry point imports `app` directly without starting a server.
+- **API URL** — In production, the frontend uses a relative URL (`/api`) since both are on the same domain, avoiding CORS entirely. `environment.production.ts` has `apiBaseUrl: '/api'`.
+- **Environment variables** — Set in Vercel dashboard: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `CORS_ORIGIN` (set to the Vercel deployment URL), `NODE_ENV=production`.
+- **Rate limiter caveat** — `express-rate-limit` uses in-memory storage; each serverless cold start has a fresh store. Rate limiting is per-invocation, not global. For production-grade rate limiting, use Vercel Edge Middleware or Upstash Redis.
+- **Build command** — `npm run build` at project root (runs `build:backend` then `build:frontend`).
+
 ## Development Commands
 - **Backend:** `cd test/backend && npm run dev` (starts Express on port 3001 with hot reload)
 - **Frontend:** `cd test/frontend && npm start` (starts Angular dev server on port 4200)
 - **Supabase:** `supabase start` for local dev, `supabase db push` to apply migrations
 - **Build frontend:** `ng build --configuration production`
 - **Build backend:** `cd test/backend && npm run build` (compiles TypeScript to `dist/`)
+- **Build all:** `npm run build` at project root (compiles backend + builds frontend)
 - **Root scripts:** `npm run dev` runs both backend and frontend concurrently
 
 ## Generated Visual Assets

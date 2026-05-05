@@ -8,3 +8,11 @@ dist/
 .vercel/
 test/backend/dist/
 test/frontend/dist/
+
+# Local config
+.claude/
+.mcp.json
+
+# Supabase local state
+test/supabase/.branches/
+test/supabase/.temp/
