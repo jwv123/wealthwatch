@@ -64,6 +64,8 @@ SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public';
 3. Log in as User B — verify you cannot see User A's transactions
 4. This confirms RLS is working correctly
 
+> **Important:** All RLS policies use `auth.uid()` which requires the Supabase client to carry the user's JWT. The backend's `createAuthenticatedClient(accessToken)` creates a per-request client with the Authorization header set. If you test queries directly via the Supabase dashboard or with the anon key client, `auth.uid()` returns null and RLS will block all rows.
+
 ### The `metadata` JSONB column
 
 The `transactions.metadata` column stores flexible key-value data:

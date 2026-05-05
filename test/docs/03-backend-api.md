@@ -14,8 +14,18 @@ Request → Helmet → CORS → JSON Parser → Rate Limiter → [Auth Middlewar
 - **CORS**: Allows requests from the configured frontend origin
 - **JSON Parser**: Parses request bodies
 - **Rate Limiter**: Limits requests per window (default: 100 per 15 minutes)
-- **Auth Middleware**: Extracts JWT from `Authorization: Bearer <token>`, validates with Supabase, attaches `userId` and `userEmail` to request
+- **Auth Middleware**: Extracts JWT from `Authorization: Bearer <token>`, validates with Supabase `getUser()`, attaches `userId`, `userEmail`, and `accessToken` to request
 - **Zod Validation**: Validates request bodies against schemas
+
+### Supabase Client Strategy
+
+The backend uses two Supabase client strategies:
+
+1. **`supabaseClient` (anon key)** — Used only for auth operations: `signInWithPassword`, `signUp`, `refreshSession`, and `getUser` (token validation in auth middleware). Cannot satisfy RLS policies because `auth.uid()` returns null.
+
+2. **`createAuthenticatedClient(accessToken)`** — Creates a per-request Supabase client with the user's JWT in the Authorization header. Used for ALL data queries (transactions, categories, reports, profiles). This is required because RLS policies on all tables use `auth.uid()` to restrict data access to the authenticated user's own rows. Without the user's JWT, `auth.uid()` returns null and queries return empty results.
+
+Controllers create an authenticated client via `createAuthenticatedClient(req.accessToken)` and pass it to services as the first parameter. Services never use the global `supabaseClient` for data queries.
 
 ### Environment Variables
 
@@ -47,6 +57,8 @@ GET /api/health → { status: "ok", timestamp: "..." }
 | POST | `/api/auth/register` | No | `{ email, password, display_name? }` | `{ access_token, refresh_token, user }` |
 | POST | `/api/auth/logout` | Yes | — | `{ message: "Logged out successfully" }` |
 | POST | `/api/auth/refresh` | No | `{ refresh_token }` | `{ access_token, refresh_token, user }` |
+
+> **Note:** The refresh endpoint returns the same formatted response as login/register (flat `access_token`, `refresh_token`, `user`), not the raw Supabase session object. The frontend error interceptor uses this to seamlessly refresh expired tokens.
 
 ### Categories
 
@@ -89,6 +101,20 @@ All errors follow this format:
 ```
 
 Status codes: `400` (validation), `401` (unauthorized), `404` (not found), `500` (server error).
+
+### AuthRequest Interface
+
+All authenticated route handlers receive an `AuthRequest` with three fields from the auth middleware:
+
+```typescript
+interface AuthRequest extends Request {
+  userId: string;      // from validated JWT
+  userEmail: string;   // from validated JWT
+  accessToken: string; // raw JWT for creating authenticated Supabase clients
+}
+```
+
+Controllers use `createAuthenticatedClient(req.accessToken)` to create a Supabase client that satisfies RLS policies, then pass it to services as the first parameter.
 
 ## Running the Server
 

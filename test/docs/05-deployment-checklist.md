@@ -168,6 +168,8 @@ SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public';
 - [ ] Verify `service_role` key is ONLY used in the backend, never in frontend code
 - [ ] Check that all tables have RLS enabled
 - [ ] Test that unauthenticated requests are rejected
+- [ ] Verify that authenticated data queries work (RLS policies use `auth.uid()`, which requires the backend's `createAuthenticatedClient(accessToken)` to pass the user's JWT — queries with the anon key alone will return empty results)
+- [ ] Test the token refresh flow: let a session expire, verify the frontend automatically refreshes and data persists
 
 ---
 

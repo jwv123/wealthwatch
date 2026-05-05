@@ -20,8 +20,9 @@ frontend/src/
 │   ├── app.routes.ts             # Lazy-loaded route definitions
 │   ├── core/
 │   │   ├── auth/                 # AuthService, AuthGuard, UnauthGuard
-│   │   ├── interceptors/         # AuthInterceptor, ErrorInterceptor
-│   │   └── supabase/            # Supabase client initialization
+│   │   ├── interceptors/         # AuthInterceptor (Bearer token), ErrorInterceptor (401 → token refresh → forceLogout)
+│   │   ├── currency/            # CurrencyService, WwCurrencyPipe
+│   │   └── theme/               # ThemeService, ThemeStore
 │   ├── shared/
 │   │   ├── components/          # Navbar, Sidebar, LoadingSpinner, etc.
 │   │   ├── pipes/               # wwCurrency, wwDateFormat
@@ -68,10 +69,15 @@ Components read signals directly in templates, and services mutate stores after 
 ### Auth Flow
 
 1. `AuthService.login()` calls `POST /api/auth/login`
-2. On success, `AuthStore.setToken()` + `AuthStore.setUser()` + `localStorage.setItem()`
+2. On success, `AuthService.handleLogin()` (now async) sets tokens in `AuthStore` and `localStorage`, then awaits `getProfile()` to load the real user profile (including `default_currency`) before resolving
 3. `AuthInterceptor` attaches `Authorization: Bearer <token>` to all outgoing requests
-4. `ErrorInterceptor` catches 401s → clears state → redirects to `/login`
-5. On app init, `AuthService.tryRestoreSession()` checks `localStorage` for existing tokens
+4. `ErrorInterceptor` catches 401s and attempts token refresh before forcing logout:
+   - On 401, tries `AuthService.refreshToken()` with the stored refresh token
+   - While refresh is in-flight, subsequent 401s are queued and retried with the new token
+   - Only if refresh fails (or no refresh token exists) does it call `forceLogout()` which resets all stores (Auth, Transaction, Category, Dashboard), clears localStorage, and redirects to `/login`
+   - Auth endpoints (`/auth/login`, `/auth/register`, `/auth/refresh`) are excluded from refresh attempts
+5. On app init, `APP_INITIALIZER` calls `AuthService.tryRestoreSession()` which checks `localStorage` for existing tokens and fetches the user profile before the app bootstraps
+6. `handleLogout()` resets all data stores (Auth, Transaction, Category, Dashboard) and clears `localStorage` to prevent stale data from appearing across sessions
 
 ### Chart Integration
 
