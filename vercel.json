@@ -1,7 +1,23 @@
 {
-  "buildCommand": "bash build-vercel.sh",
-  "outputDirectory": "test/frontend/dist/wealthwatch/browser",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "test/frontend/dist/wealthwatch/browser"
+      }
+    },
+    {
+      "src": "api/[...path].ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["test/backend/dist/**"]
+      }
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build:backend": "cd test/backend && npm install && npm run build",
-    "build:frontend": "cd test/frontend && npm install && npx ng build --configuration production",
-    "build": "npm run build:backend && npm run build:frontend",
+    "build": "bash build-vercel.sh",
     "dev:backend": "cd test/backend && npm run dev",
     "dev:frontend": "cd test/frontend && npm start",
     "dev": "npm run dev:backend & npm run dev:frontend"
