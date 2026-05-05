@@ -9,10 +9,7 @@
     },
     {
       "src": "api/[...path].ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["test/backend/dist/**"]
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
