@@ -1,12 +1,17 @@
-import { Component, OnInit, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { TransactionStore } from '../../stores/transaction.store';
 import { CategoryStore } from '../../stores/category.store';
+import { AccountStore } from '../../stores/account.store';
+import { TransferStore } from '../../stores/transfer.store';
 import { DashboardStore, PeriodScope } from '../../stores/dashboard.store';
 import { DashboardService } from './services/dashboard.service';
+import { AccountsService } from '../accounts/services/accounts.service';
+import { TransfersService } from '../transfers/services/transfers.service';
 import { WwCurrencyPipe } from '../../shared/pipes/currency.pipe';
+import { WwDateFormatPipe } from '../../shared/pipes/date-format.pipe';
 import { NetBalanceCardComponent } from './components/net-balance-card/net-balance-card.component';
 import { ExpenseDoughnutComponent } from './components/expense-doughnut/expense-doughnut.component';
 import { IncomeExpenseBarComponent } from './components/income-expense-bar/income-expense-bar.component';
@@ -18,6 +23,7 @@ import { RecentTransactionsComponent } from './components/recent-transactions/re
   imports: [
     RouterLink,
     WwCurrencyPipe,
+    WwDateFormatPipe,
     NetBalanceCardComponent,
     ExpenseDoughnutComponent,
     IncomeExpenseBarComponent,
@@ -26,6 +32,15 @@ import { RecentTransactionsComponent } from './components/recent-transactions/re
   template: `
     <div class="dashboard">
       <h1 class="dashboard__title">Dashboard</h1>
+
+      <div class="dashboard__account-filter">
+        <select class="ww-input" (change)="onAccountChange($event)">
+          <option value="">All Accounts</option>
+          @for (acc of AccountStore.accounts(); track acc.id) {
+            <option [value]="acc.id">{{ acc.name }}</option>
+          }
+        </select>
+      </div>
 
       @if (hasTransactions()) {
       <div class="dashboard__period-toggle">
@@ -81,6 +96,23 @@ import { RecentTransactionsComponent } from './components/recent-transactions/re
         <ww-net-balance-card [balance]="summaryNetBalance()" />
       </div>
 
+      <div class="dashboard__accounts">
+        <div class="ww-card dashboard__accounts-card">
+          <span class="dashboard__card-label">Total Balance</span>
+          <span class="dashboard__card-value" [class.ww-text-income]="AccountStore.totalBalance() >= 0" [class.ww-text-expense]="AccountStore.totalBalance() < 0">
+            {{ AccountStore.totalBalance() | wwCurrency }}
+          </span>
+        </div>
+        @for (acc of AccountStore.accounts(); track acc.id) {
+          <div class="ww-card dashboard__account-card" [style.borderLeftColor]="acc.color ?? '#3498DB'">
+            <span class="dashboard__card-label">{{ acc.name }}</span>
+            <span class="dashboard__card-value dashboard__account-balance" [class.ww-text-income]="acc.balance >= 0" [class.ww-text-expense]="acc.balance < 0">
+              {{ acc.balance | wwCurrency }}
+            </span>
+          </div>
+        }
+      </div>
+
       <div class="dashboard__charts">
         <div class="ww-card dashboard__chart-card">
           <h3>Expense Breakdown</h3>
@@ -99,6 +131,26 @@ import { RecentTransactionsComponent } from './components/recent-transactions/re
         <h3>Recent Transactions</h3>
         <ww-recent-transactions [transactions]="TransactionStore.transactions()" />
       </div>
+
+      @if (TransferStore.transfers().length > 0) {
+      <div class="ww-card dashboard__transfers">
+        <h3>Recent Transfers</h3>
+        <div class="dashboard__transfers-list">
+          @for (t of TransferStore.transfers().slice(0, 10); track t.id) {
+            <div class="dashboard__transfer-row">
+              <div class="dashboard__transfer-info">
+                <span class="dashboard__transfer-desc">{{ t.description || 'Transfer' }}</span>
+                <span class="dashboard__transfer-route">
+                  {{ getAccountName(t.from_account_id) }} → {{ getAccountName(t.to_account_id) }}
+                </span>
+                <span class="dashboard__transfer-date">{{ t.date | wwDateFormat }}</span>
+              </div>
+              <span class="dashboard__transfer-amount">{{ t.amount | wwCurrency }}</span>
+            </div>
+          }
+        </div>
+      </div>
+      }
       } @else {
       <div class="dashboard__empty ww-card">
         <svg class="dashboard__empty-icon" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -119,6 +171,12 @@ import { RecentTransactionsComponent } from './components/recent-transactions/re
   styles: [`
     .dashboard__title {
       margin-bottom: 1.5rem;
+    }
+    .dashboard__account-filter {
+      margin-bottom: 1rem;
+    }
+    .dashboard__account-filter .ww-input {
+      max-width: 250px;
     }
     .dashboard__period-toggle {
       display: flex;
@@ -186,6 +244,78 @@ import { RecentTransactionsComponent } from './components/recent-transactions/re
     .dashboard__chart-card h3 {
       margin-bottom: 1rem;
     }
+    .dashboard__accounts {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .dashboard__accounts-card {
+      background: linear-gradient(135deg, var(--ww-glass-bg), rgba(var(--ww-blue-rgb), 0.08));
+      border-left: 3px solid var(--ww-blue);
+    }
+    .dashboard__account-card {
+      border-left: 3px solid;
+    }
+    .dashboard__account-balance {
+      font-size: 1.125rem;
+    }
+    .dashboard__transfers {
+      margin-bottom: 1.5rem;
+    }
+    .dashboard__transfers h3 {
+      margin-bottom: 1rem;
+    }
+    .dashboard__transfers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .dashboard__transfer-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--ww-border);
+    }
+    .dashboard__transfer-row:last-child {
+      border-bottom: none;
+    }
+    .dashboard__transfer-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+    .dashboard__transfer-desc {
+      font-weight: 600;
+      color: var(--ww-text-header);
+      font-size: 0.875rem;
+    }
+    .dashboard__transfer-route {
+      font-size: 0.8125rem;
+      color: var(--ww-text-main);
+    }
+    .dashboard__transfer-date {
+      font-size: 0.75rem;
+      color: var(--ww-text-main);
+    }
+    .dashboard__transfer-amount {
+      font-family: var(--ww-font-data);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--ww-green);
+      white-space: nowrap;
+    }
+    @media (max-width: 768px) {
+      .dashboard__accounts {
+        grid-template-columns: 1fr;
+      }
+      .dashboard__transfer-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+      }
+    }
     @media (max-width: 900px) {
       .dashboard__charts {
         grid-template-columns: 1fr;
@@ -231,10 +361,17 @@ import { RecentTransactionsComponent } from './components/recent-transactions/re
 })
 export class DashboardComponent implements OnInit {
   TransactionStore = TransactionStore;
+  CategoryStore = CategoryStore;
+  AccountStore = AccountStore;
+  TransferStore = TransferStore;
   DashboardStore = DashboardStore;
 
   private dashboardService = inject(DashboardService);
+  private accountsService = inject(AccountsService);
+  private transfersService = inject(TransfersService);
   private http = inject(HttpClient);
+
+  selectedAccountId = signal<string | null>(null);
 
   scopes: { value: PeriodScope; label: string }[] = [
     { value: 'month', label: 'Monthly' },
@@ -270,6 +407,8 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadTransactionsIfNeeded();
     this.loadCategoriesIfNeeded();
+    this.loadAccountsIfNeeded();
+    this.loadTransfersIfNeeded();
     this.loadReports();
   }
 
@@ -288,27 +427,39 @@ export class DashboardComponent implements OnInit {
     this.loadReports();
   }
 
+  onAccountChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedAccountId.set(value || null);
+    this.loadReports();
+    this.refreshAccountBalances();
+  }
+
+  getAccountName(accountId: string): string {
+    return AccountStore.byId().get(accountId)?.name ?? 'Unknown';
+  }
+
   private loadReports(): void {
     const scope = DashboardStore.scope();
     const year = DashboardStore.selectedYear();
+    const accountId = this.selectedAccountId();
 
     DashboardStore.setLoading(true);
 
     if (scope === 'all') {
-      this.dashboardService.getSummary().subscribe({
+      this.dashboardService.getSummary(undefined, accountId ?? undefined).subscribe({
         next: (data) => DashboardStore.setSummary(data),
         error: () => DashboardStore.setError('Failed to load summary'),
       });
-      this.dashboardService.getMonthly().subscribe({
+      this.dashboardService.getMonthly(undefined, accountId ?? undefined).subscribe({
         next: (data) => DashboardStore.setMonthly(data),
         error: () => DashboardStore.setError('Failed to load monthly data'),
       });
     } else {
-      this.dashboardService.getSummary(year).subscribe({
+      this.dashboardService.getSummary(year, accountId ?? undefined).subscribe({
         next: (data) => DashboardStore.setSummary(data),
         error: () => DashboardStore.setError('Failed to load summary'),
       });
-      this.dashboardService.getMonthly(year).subscribe({
+      this.dashboardService.getMonthly(year, accountId ?? undefined).subscribe({
         next: (data) => DashboardStore.setMonthly(data),
         error: () => DashboardStore.setError('Failed to load monthly data'),
       });
@@ -330,6 +481,29 @@ export class DashboardComponent implements OnInit {
     this.http.get<any[]>(`${environment.apiBaseUrl}/categories`).subscribe({
       next: (data) => CategoryStore.setCategories(data),
       error: () => CategoryStore.setError('Failed to load categories'),
+    });
+  }
+
+  private loadAccountsIfNeeded(): void {
+    if (AccountStore.accounts().length > 0 && !AccountStore.isLoading()) return;
+    this.accountsService.list().subscribe({
+      next: (data) => AccountStore.setAccounts(data),
+      error: () => {},
+    });
+  }
+
+  private refreshAccountBalances(): void {
+    this.accountsService.list().subscribe({
+      next: (data) => AccountStore.setAccounts(data),
+      error: () => {},
+    });
+  }
+
+  private loadTransfersIfNeeded(): void {
+    if (TransferStore.transfers().length > 0 && !TransferStore.isLoading()) return;
+    this.transfersService.list().subscribe({
+      next: (data) => TransferStore.setTransfers(data),
+      error: () => TransferStore.setError('Failed to load transfers'),
     });
   }
 }

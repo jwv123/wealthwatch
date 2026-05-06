@@ -30,6 +30,13 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     position: 'right',
   },
   {
+    target: 'a[routerLink="/accounts"]',
+    title: 'Accounts',
+    description:
+      'Manage your bank accounts, savings, and wallets. Track balances across multiple accounts and transfer money between them instantly.',
+    position: 'right',
+  },
+  {
     target: 'a[routerLink="/calendar"]',
     title: 'Calendar',
     description:

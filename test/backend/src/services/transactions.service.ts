@@ -6,6 +6,7 @@ interface TransactionFilters {
   dateFrom?: string;
   dateTo?: string;
   categoryId?: string;
+  accountId?: string;
 }
 
 export async function getUserTransactions(
@@ -15,7 +16,7 @@ export async function getUserTransactions(
 ): Promise<TransactionRow[]> {
   let query = client
     .from('transactions')
-    .select('*, category:categories(*)')
+    .select('*, category:categories(*), account:accounts(*)')
     .eq('user_id', userId)
     .order('date', { ascending: false });
 
@@ -23,6 +24,7 @@ export async function getUserTransactions(
   if (filters.dateFrom) query = query.gte('date', filters.dateFrom);
   if (filters.dateTo) query = query.lte('date', filters.dateTo);
   if (filters.categoryId) query = query.eq('category_id', filters.categoryId);
+  if (filters.accountId) query = query.eq('account_id', filters.accountId);
 
   const { data, error } = await query;
   if (error) throw { statusCode: 500, message: error.message };
@@ -37,7 +39,7 @@ export async function createTransaction(
   const { data, error } = await client
     .from('transactions')
     .insert({ ...payload, user_id: userId })
-    .select('*, category:categories(*)')
+    .select('*, category:categories(*), account:accounts(*)')
     .single();
 
   if (error) throw { statusCode: 400, message: error.message };
@@ -55,7 +57,7 @@ export async function updateTransaction(
     .update(updates)
     .eq('id', transactionId)
     .eq('user_id', userId)
-    .select('*, category:categories(*)')
+    .select('*, category:categories(*), account:accounts(*)')
     .single();
 
   if (error) throw { statusCode: 400, message: error.message };

@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export async function getSummary(client: SupabaseClient, userId: string, year?: number) {
+export async function getSummary(client: SupabaseClient, userId: string, year?: number, accountId?: string) {
   const isAllTime = year === undefined;
 
   let query = client
@@ -10,6 +10,10 @@ export async function getSummary(client: SupabaseClient, userId: string, year?: 
 
   if (!isAllTime) {
     query = query.gte('date', `${year}-01-01`).lte('date', `${year}-12-31`);
+  }
+
+  if (accountId) {
+    query = query.eq('account_id', accountId);
   }
 
   const { data: transactions, error } = await query;
@@ -47,7 +51,7 @@ export async function getSummary(client: SupabaseClient, userId: string, year?: 
   };
 }
 
-export async function getMonthly(client: SupabaseClient, userId: string, year?: number) {
+export async function getMonthly(client: SupabaseClient, userId: string, year?: number, accountId?: string) {
   const isAllTime = year === undefined;
 
   let query = client
@@ -57,6 +61,10 @@ export async function getMonthly(client: SupabaseClient, userId: string, year?: 
 
   if (!isAllTime) {
     query = query.gte('date', `${year}-01-01`).lte('date', `${year}-12-31`);
+  }
+
+  if (accountId) {
+    query = query.eq('account_id', accountId);
   }
 
   const { data: transactions, error } = await query;

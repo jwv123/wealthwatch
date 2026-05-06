@@ -16,7 +16,7 @@ function getInitialCompleted(): boolean {
 const _state = signal<OnboardingState>({
   isActive: false,
   currentStep: 0,
-  totalSteps: 6,
+  totalSteps: 7,
   hasCompleted: getInitialCompleted(),
 });
 

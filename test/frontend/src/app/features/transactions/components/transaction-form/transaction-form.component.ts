@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, computed } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CategoryStore } from '../../../../stores/category.store';
+import { AccountStore } from '../../../../stores/account.store';
 import { CreateTransactionDTO } from '../../../../shared/models/transaction.model';
 
 @Component({
@@ -16,6 +17,15 @@ import { CreateTransactionDTO } from '../../../../shared/models/transaction.mode
                   (click)="form.patchValue({ type: 'income' })">Income</button>
           <button type="button" class="ww-btn" [class.ww-btn-danger]="form.get('type')?.value === 'expense'"
                   (click)="form.patchValue({ type: 'expense' })">Expense</button>
+        </div>
+
+        <div class="transaction-form__field">
+          <label class="ww-label">Account</label>
+          <select class="ww-input" formControlName="account_id">
+            @for (acc of AccountStore.accounts(); track acc.id) {
+            <option [value]="acc.id">{{ acc.name }}</option>
+            }
+          </select>
         </div>
 
         <div class="transaction-form__row">
@@ -103,8 +113,10 @@ import { CreateTransactionDTO } from '../../../../shared/models/transaction.mode
 export class TransactionFormComponent {
   @Output() save = new EventEmitter<CreateTransactionDTO>();
   CategoryStore = CategoryStore;
+  AccountStore = AccountStore;
 
   categories = CategoryStore.categories;
+  defaultAccountId = computed(() => AccountStore.defaultAccount()?.id ?? '');
 
   form: FormGroup;
 
@@ -112,6 +124,7 @@ export class TransactionFormComponent {
     const today = new Date().toISOString().split('T')[0];
     this.form = this.fb.group({
       type: ['expense'],
+      account_id: [this.defaultAccountId(), Validators.required],
       amount: [null, [Validators.required, Validators.min(0.01)]],
       description: ['', [Validators.required, Validators.maxLength(255)]],
       date: [today, Validators.required],
@@ -135,6 +148,7 @@ export class TransactionFormComponent {
     this.save.emit({
       ...rest,
       amount: Number(rest.amount),
+      account_id: rest.account_id,
       category_id: rest.category_id || null,
       metadata,
     });

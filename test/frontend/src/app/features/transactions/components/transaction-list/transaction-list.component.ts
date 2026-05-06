@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TransactionStore } from '../../../../stores/transaction.store';
+import { AccountStore } from '../../../../stores/account.store';
 import { TransactionsService } from '../../services/transactions.service';
 import { WwCurrencyPipe } from '../../../../shared/pipes/currency.pipe';
 import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
@@ -17,6 +18,7 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
             <tr>
               <th>Date</th>
               <th>Description</th>
+              <th>Account</th>
               <th>Category</th>
               <th>Type</th>
               <th>Amount</th>
@@ -30,6 +32,7 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
                 {{ t.description }}
                 <span class="misc-badge" *ngIf="t.metadata?.is_misc">Misc</span>
               </td>
+              <td>{{ getAccountName(t.account_id) }}</td>
               <td>{{ t.category?.name || 'Uncategorized' }}</td>
               <td>
                 <span class="type-badge" [class.type-badge--income]="t.type === 'income'" [class.type-badge--expense]="t.type === 'expense'">
@@ -65,6 +68,7 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
               <span class="type-badge" [class.type-badge--income]="t.type === 'income'" [class.type-badge--expense]="t.type === 'expense'">
                 {{ t.type }}
               </span>
+              <span>{{ getAccountName(t.account_id) }}</span>
               <span>{{ t.category?.name || 'Uncategorized' }}</span>
               <span>{{ t.date | wwDateFormat }}</span>
             </div>
@@ -166,6 +170,7 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
       font-size: 0.75rem;
       color: var(--ww-text-main);
       margin-bottom: 0.5rem;
+      flex-wrap: wrap;
     }
     .transaction-card__delete {
       font-size: 0.6875rem;
@@ -182,8 +187,13 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 })
 export class TransactionListComponent {
   TransactionStore = TransactionStore;
+  AccountStore = AccountStore;
 
   constructor(private transactionsService: TransactionsService) {}
+
+  getAccountName(accountId: string): string {
+    return AccountStore.byId().get(accountId)?.name ?? 'Unknown';
+  }
 
   onDelete(id: string): void {
     if (!confirm('Delete this transaction?')) return;

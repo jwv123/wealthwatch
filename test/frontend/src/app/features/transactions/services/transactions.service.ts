@@ -10,12 +10,13 @@ export class TransactionsService {
 
   constructor(private http: HttpClient) {}
 
-  list(filters?: { type?: string; from?: string; to?: string; categoryId?: string }): Observable<Transaction[]> {
+  list(filters?: { type?: string; from?: string; to?: string; categoryId?: string; accountId?: string }): Observable<Transaction[]> {
     const params = new URLSearchParams();
     if (filters?.type) params.set('type', filters.type);
     if (filters?.from) params.set('from', filters.from);
     if (filters?.to) params.set('to', filters.to);
     if (filters?.categoryId) params.set('categoryId', filters.categoryId);
+    if (filters?.accountId) params.set('accountId', filters.accountId);
     const qs = params.toString();
     return this.http.get<Transaction[]>(`${this.apiUrl}/transactions${qs ? '?' + qs : ''}`);
   }

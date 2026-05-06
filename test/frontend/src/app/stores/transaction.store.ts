@@ -4,6 +4,7 @@ import { Transaction } from '../shared/models/transaction.model';
 interface TransactionFilter {
   type: 'all' | 'income' | 'expense';
   categoryId: string | null;
+  accountId: string | null;
   dateFrom: string | null;
   dateTo: string | null;
 }
@@ -19,7 +20,7 @@ const initialState: TransactionState = {
   transactions: [],
   isLoading: false,
   error: null,
-  filter: { type: 'all', categoryId: null, dateFrom: null, dateTo: null },
+  filter: { type: 'all', categoryId: null, accountId: null, dateFrom: null, dateTo: null },
 };
 
 const _state = signal<TransactionState>(initialState);
@@ -35,6 +36,7 @@ export const TransactionStore = {
     return transactions.filter((t) => {
       if (filter.type !== 'all' && t.type !== filter.type) return false;
       if (filter.categoryId && t.category_id !== filter.categoryId) return false;
+      if (filter.accountId && t.account_id !== filter.accountId) return false;
       if (filter.dateFrom && t.date < filter.dateFrom) return false;
       if (filter.dateTo && t.date > filter.dateTo) return false;
       return true;

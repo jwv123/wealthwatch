@@ -8,6 +8,8 @@ import { AuthStore } from '../../stores/auth.store';
 import { TransactionStore } from '../../stores/transaction.store';
 import { CategoryStore } from '../../stores/category.store';
 import { DashboardStore } from '../../stores/dashboard.store';
+import { AccountStore } from '../../stores/account.store';
+import { TransferStore } from '../../stores/transfer.store';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -69,6 +71,8 @@ export class AuthService {
     TransactionStore.reset();
     CategoryStore.reset();
     DashboardStore.reset();
+    AccountStore.reset();
+    TransferStore.reset();
     localStorage.removeItem('ww_token');
     localStorage.removeItem('ww_refresh_token');
   }

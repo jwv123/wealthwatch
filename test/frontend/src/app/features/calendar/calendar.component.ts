@@ -3,6 +3,8 @@ import { Transaction } from '../../shared/models/transaction.model';
 import { WwCurrencyPipe } from '../../shared/pipes/currency.pipe';
 import { WwDateFormatPipe } from '../../shared/pipes/date-format.pipe';
 import { TransactionsService } from '../transactions/services/transactions.service';
+import { AccountStore } from '../../stores/account.store';
+import { AccountsService } from '../accounts/services/accounts.service';
 
 interface CalendarCell {
   key: string;
@@ -26,6 +28,15 @@ interface CalendarCell {
           <span class="calendar-nav__label">{{ monthLabel() }} {{ viewYear() }}</span>
           <button class="ww-btn" (click)="nextMonth()">&gt;</button>
         </div>
+      </div>
+
+      <div class="calendar-page__filter">
+        <select class="ww-input" (change)="onAccountChange($event)">
+          <option value="">All Accounts</option>
+          @for (acc of AccountStore.accounts(); track acc.id) {
+            <option [value]="acc.id">{{ acc.name }}</option>
+          }
+        </select>
       </div>
 
       @if (isLoading()) {
@@ -139,6 +150,12 @@ interface CalendarCell {
       margin-bottom: 1.5rem;
       flex-wrap: wrap;
       gap: 0.75rem;
+    }
+    .calendar-page__filter {
+      margin-bottom: 1rem;
+    }
+    .calendar-page__filter .ww-input {
+      max-width: 250px;
     }
     .calendar-nav {
       display: flex;
@@ -383,6 +400,8 @@ interface CalendarCell {
 })
 export class CalendarComponent implements OnInit, AfterViewChecked {
   private transactionsService = inject(TransactionsService);
+  private accountsService = inject(AccountsService);
+  AccountStore = AccountStore;
 
   @ViewChild('detailSection') detailSection!: ElementRef<HTMLElement>;
   private shouldScrollToDetail = false;
@@ -390,6 +409,7 @@ export class CalendarComponent implements OnInit, AfterViewChecked {
   viewMonth = signal(new Date().getMonth());
   viewYear = signal(new Date().getFullYear());
   selectedDay = signal<string | null>(null);
+  selectedAccountId = signal<string | null>(null);
   calendarTransactions = signal<Transaction[]>([]);
   isLoading = signal(false);
 
@@ -445,7 +465,22 @@ export class CalendarComponent implements OnInit, AfterViewChecked {
   });
 
   ngOnInit(): void {
+    this.loadAccountsIfNeeded();
     this.loadMonth();
+  }
+
+  onAccountChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.selectedAccountId.set(value || null);
+    this.loadMonth();
+  }
+
+  private loadAccountsIfNeeded(): void {
+    if (AccountStore.accounts().length > 0 && !AccountStore.isLoading()) return;
+    this.accountsService.list().subscribe({
+      next: (data) => AccountStore.setAccounts(data),
+      error: () => {},
+    });
   }
 
   private loadMonth(): void {
@@ -455,8 +490,11 @@ export class CalendarComponent implements OnInit, AfterViewChecked {
     const lastDay = new Date(year, month + 1, 0).getDate();
     const to = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
 
+    const filters: any = { from, to };
+    if (this.selectedAccountId()) filters.accountId = this.selectedAccountId()!;
+
     this.isLoading.set(true);
-    this.transactionsService.list({ from, to }).subscribe({
+    this.transactionsService.list(filters).subscribe({
       next: (data) => {
         this.calendarTransactions.set(data);
         this.isLoading.set(false);

@@ -45,6 +45,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'accounts',
+        loadComponent: () =>
+          import('./features/accounts/accounts.component').then(
+            (m) => m.AccountsComponent
+          ),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(

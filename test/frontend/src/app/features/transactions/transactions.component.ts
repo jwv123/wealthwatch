@@ -1,9 +1,11 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { TransactionStore } from '../../stores/transaction.store';
 import { CategoryStore } from '../../stores/category.store';
+import { AccountStore } from '../../stores/account.store';
 import { TransactionFormComponent } from './components/transaction-form/transaction-form.component';
 import { TransactionListComponent } from './components/transaction-list/transaction-list.component';
 import { TransactionsService } from './services/transactions.service';
+import { AccountsService } from '../accounts/services/accounts.service';
 
 @Component({
   selector: 'ww-transactions',
@@ -23,6 +25,12 @@ import { TransactionsService } from './services/transactions.service';
       }
 
       <div class="transactions-page__filters">
+        <select class="ww-input" (change)="onAccountFilter($event)">
+          <option value="">All Accounts</option>
+          @for (acc of AccountStore.accounts(); track acc.id) {
+            <option [value]="acc.id">{{ acc.name }}</option>
+          }
+        </select>
         <select class="ww-input" (change)="onTypeFilter($event)">
           <option value="all">All Types</option>
           <option value="income">Income</option>
@@ -90,6 +98,7 @@ import { TransactionsService } from './services/transactions.service';
 export class TransactionsComponent implements OnInit {
   TransactionStore = TransactionStore;
   CategoryStore = CategoryStore;
+  AccountStore = AccountStore;
   showForm = false;
 
   selectedMonth = signal<number | null>(new Date().getMonth());
@@ -102,10 +111,14 @@ export class TransactionsComponent implements OnInit {
 
   years = Array.from({ length: 7 }, (_, i) => new Date().getFullYear() - 3 + i);
 
-  constructor(private transactionsService: TransactionsService) {}
+  constructor(
+    private transactionsService: TransactionsService,
+    private accountsService: AccountsService,
+  ) {}
 
   ngOnInit(): void {
     this.loadTransactionsIfNeeded();
+    this.loadAccountsIfNeeded();
   }
 
   private loadTransactionsIfNeeded(): void {
@@ -117,6 +130,14 @@ export class TransactionsComponent implements OnInit {
     });
   }
 
+  private loadAccountsIfNeeded(): void {
+    if (AccountStore.accounts().length > 0 && !AccountStore.isLoading()) return;
+    this.accountsService.list().subscribe({
+      next: (data) => AccountStore.setAccounts(data),
+      error: () => {},
+    });
+  }
+
   onSave(dto: any): void {
     this.transactionsService.create(dto).subscribe({
       next: (transaction) => {
@@ -125,6 +146,11 @@ export class TransactionsComponent implements OnInit {
       },
       error: () => TransactionStore.setError('Failed to create transaction'),
     });
+  }
+
+  onAccountFilter(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    TransactionStore.setFilter({ accountId: value || null });
   }
 
   onTypeFilter(event: Event): void {

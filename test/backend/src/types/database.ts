@@ -20,9 +20,42 @@ export interface CategoryRow {
   updated_at: string;
 }
 
+export interface AccountRow {
+  id: string;
+  user_id: string;
+  name: string;
+  type: 'checking' | 'savings' | 'credit_card' | 'cash' | 'investment' | 'loan';
+  initial_balance: number;
+  currency: string;
+  color: string | null;
+  icon: string | null;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AccountWithBalance extends AccountRow {
+  balance: number;
+}
+
+export interface TransferRow {
+  id: string;
+  user_id: string;
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  description: string;
+  date: string;
+  created_at: string;
+  updated_at: string;
+  from_account?: AccountRow;
+  to_account?: AccountRow;
+}
+
 export interface TransactionRow {
   id: string;
   user_id: string;
+  account_id: string;
   category_id: string | null;
   amount: number;
   type: 'income' | 'expense';
@@ -32,4 +65,5 @@ export interface TransactionRow {
   created_at: string;
   updated_at: string;
   category?: CategoryRow;
+  account?: AccountRow;
 }

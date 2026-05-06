@@ -2,35 +2,30 @@ import { Router, RequestHandler } from 'express';
 import { authMiddleware } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import { z } from 'zod';
-import * as controller from '../controllers/transactions.controller';
+import * as controller from '../controllers/transfers.controller';
 
 const router = Router();
 
 const createSchema = z.object({
-  account_id: z.string().uuid(),
-  category_id: z.string().uuid().nullable().optional(),
+  from_account_id: z.string().uuid(),
+  to_account_id: z.string().uuid(),
   amount: z.number().positive('Amount must be positive'),
-  type: z.enum(['income', 'expense']),
-  description: z.string().min(1).max(255),
+  description: z.string().max(255).default(''),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  metadata: z.record(z.unknown()).optional(),
 });
 
 const updateSchema = z.object({
-  account_id: z.string().uuid().optional(),
-  category_id: z.string().uuid().nullable().optional(),
+  from_account_id: z.string().uuid().optional(),
+  to_account_id: z.string().uuid().optional(),
   amount: z.number().positive().optional(),
-  type: z.enum(['income', 'expense']).optional(),
-  description: z.string().min(1).max(255).optional(),
+  description: z.string().max(255).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  metadata: z.record(z.unknown()).optional(),
 });
 
 router.use(authMiddleware);
 
 router.get('/', controller.list as unknown as RequestHandler);
 router.post('/', validate(createSchema), controller.create as unknown as RequestHandler);
-router.post('/delete-all', controller.deleteAll as unknown as RequestHandler);
 router.patch('/:id', validate(updateSchema), controller.update as unknown as RequestHandler);
 router.delete('/:id', controller.remove as unknown as RequestHandler);
 

@@ -10,13 +10,19 @@ export class DashboardService {
 
   constructor(private http: HttpClient) {}
 
-  getSummary(year?: number): Observable<SummaryData> {
-    const params = year ? `?year=${year}` : '';
-    return this.http.get<SummaryData>(`${this.apiUrl}/reports/summary${params}`);
+  getSummary(year?: number, accountId?: string): Observable<SummaryData> {
+    const params = new URLSearchParams();
+    if (year) params.set('year', String(year));
+    if (accountId) params.set('accountId', accountId);
+    const qs = params.toString();
+    return this.http.get<SummaryData>(`${this.apiUrl}/reports/summary${qs ? '?' + qs : ''}`);
   }
 
-  getMonthly(year?: number): Observable<MonthlyData> {
-    const params = year ? `?year=${year}` : '';
-    return this.http.get<MonthlyData>(`${this.apiUrl}/reports/monthly${params}`);
+  getMonthly(year?: number, accountId?: string): Observable<MonthlyData> {
+    const params = new URLSearchParams();
+    if (year) params.set('year', String(year));
+    if (accountId) params.set('accountId', accountId);
+    const qs = params.toString();
+    return this.http.get<MonthlyData>(`${this.apiUrl}/reports/monthly${qs ? '?' + qs : ''}`);
   }
 }

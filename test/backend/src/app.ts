@@ -6,6 +6,8 @@ import { rateLimiter } from './middleware/rate-limiter';
 import { errorHandler } from './middleware/error-handler';
 import authRoutes from './routes/auth.routes';
 import categoriesRoutes from './routes/categories.routes';
+import accountsRoutes from './routes/accounts.routes';
+import transfersRoutes from './routes/transfers.routes';
 import transactionsRoutes from './routes/transactions.routes';
 import reportsRoutes from './routes/reports.routes';
 
@@ -22,6 +24,8 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoriesRoutes);
+app.use('/api/accounts', accountsRoutes);
+app.use('/api/transfers', transfersRoutes);
 app.use('/api/transactions', transactionsRoutes);
 app.use('/api/reports', reportsRoutes);
 

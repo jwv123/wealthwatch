@@ -24,6 +24,13 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           <span class="sidebar__label">Transactions</span>
         </a>
+        <a routerLink="/accounts"
+           routerLinkActive="sidebar__link--active"
+           class="sidebar__link"
+           (click)="onNavClick()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <span class="sidebar__label">Accounts</span>
+        </a>
         <a routerLink="/calendar"
            routerLinkActive="sidebar__link--active"
            class="sidebar__link"

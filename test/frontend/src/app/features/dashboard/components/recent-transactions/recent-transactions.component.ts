@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Transaction } from '../../../../shared/models/transaction.model';
+import { AccountStore } from '../../../../stores/account.store';
 import { WwCurrencyPipe } from '../../../../shared/pipes/currency.pipe';
 import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 
@@ -15,6 +16,7 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
           <tr>
             <th>Date</th>
             <th>Description</th>
+            <th>Account</th>
             <th>Category</th>
             <th>Type</th>
             <th>Amount</th>
@@ -27,6 +29,7 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
               {{ t.description }}
               <span class="misc-badge" *ngIf="t.metadata?.is_misc">Misc</span>
             </td>
+            <td>{{ getAccountName(t.account_id) }}</td>
             <td>{{ t.category?.name || 'Uncategorized' }}</td>
             <td>
               <span class="type-badge" [class.type-badge--income]="t.type === 'income'" [class.type-badge--expense]="t.type === 'expense'">
@@ -59,6 +62,7 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
             <span class="type-badge" [class.type-badge--income]="t.type === 'income'" [class.type-badge--expense]="t.type === 'expense'">
               {{ t.type }}
             </span>
+            <span>{{ getAccountName(t.account_id) }}</span>
             <span>{{ t.category?.name || 'Uncategorized' }}</span>
             <span>{{ t.date | wwDateFormat }}</span>
           </div>
@@ -166,4 +170,9 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
 })
 export class RecentTransactionsComponent {
   @Input() transactions: Transaction[] = [];
+  AccountStore = AccountStore;
+
+  getAccountName(accountId: string): string {
+    return AccountStore.byId().get(accountId)?.name ?? 'Unknown';
+  }
 }

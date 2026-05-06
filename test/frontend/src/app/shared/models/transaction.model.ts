@@ -1,8 +1,10 @@
 import { Category } from './category.model';
+import { Account } from './account.model';
 
 export interface Transaction {
   id: string;
   user_id: string;
+  account_id: string;
   category_id: string | null;
   amount: number;
   type: 'income' | 'expense';
@@ -12,6 +14,7 @@ export interface Transaction {
   created_at: string;
   updated_at: string;
   category?: Category;
+  account?: Account;
 }
 
 export interface TransactionMetadata {
@@ -24,6 +27,7 @@ export interface TransactionMetadata {
 }
 
 export interface CreateTransactionDTO {
+  account_id: string;
   category_id?: string | null;
   amount: number;
   type: 'income' | 'expense';
@@ -33,6 +37,7 @@ export interface CreateTransactionDTO {
 }
 
 export interface UpdateTransactionDTO {
+  account_id?: string;
   category_id?: string | null;
   amount?: number;
   type?: 'income' | 'expense';
