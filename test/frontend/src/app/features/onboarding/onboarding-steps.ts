@@ -37,6 +37,13 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     position: 'right',
   },
   {
+    target: 'a[routerLink="/recurring"]',
+    title: 'Recurring',
+    description:
+      'Set up recurring income, expenses, and transfers. Automate regular transactions like salary, rent, and savings transfers.',
+    position: 'right',
+  },
+  {
     target: 'a[routerLink="/calendar"]',
     title: 'Calendar',
     description:

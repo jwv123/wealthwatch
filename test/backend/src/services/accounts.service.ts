@@ -68,7 +68,7 @@ export async function createAccount(
     color?: string;
     icon?: string;
   }
-): Promise<AccountRow> {
+): Promise<AccountWithBalance> {
   const { data, error } = await client
     .from('accounts')
     .insert({ ...payload, user_id: userId })
@@ -76,7 +76,9 @@ export async function createAccount(
     .single();
 
   if (error) throw { statusCode: 400, message: error.message };
-  return data;
+
+  // A newly created account has no transactions or transfers yet, so balance = initial_balance
+  return { ...(data as AccountRow), balance: Number((data as AccountRow).initial_balance) };
 }
 
 export async function updateAccount(
@@ -84,7 +86,7 @@ export async function updateAccount(
   userId: string,
   accountId: string,
   updates: Partial<Pick<AccountRow, 'name' | 'type' | 'initial_balance' | 'color' | 'icon' | 'is_default'>>
-): Promise<AccountRow> {
+): Promise<AccountWithBalance> {
   if (updates.is_default === false) {
     const { data: current } = await client
       .from('accounts')
@@ -116,7 +118,36 @@ export async function updateAccount(
 
   if (error) throw { statusCode: 400, message: error.message };
   if (!data) throw { statusCode: 404, message: 'Account not found' };
-  return data;
+
+  // Recompute balance for the updated account
+  const { data: transactions } = await client
+    .from('transactions')
+    .select('account_id, type, amount')
+    .eq('user_id', userId)
+    .eq('account_id', accountId);
+
+  const { data: transfers } = await client
+    .from('transfers')
+    .select('from_account_id, to_account_id, amount')
+    .eq('user_id', userId);
+
+  const account = data as AccountRow;
+  let income = 0;
+  let expense = 0;
+  for (const t of transactions ?? []) {
+    if (t.type === 'income') income += Number(t.amount);
+    else expense += Number(t.amount);
+  }
+
+  let transferIn = 0;
+  let transferOut = 0;
+  for (const tf of transfers ?? []) {
+    if (tf.to_account_id === accountId) transferIn += Number(tf.amount);
+    if (tf.from_account_id === accountId) transferOut += Number(tf.amount);
+  }
+
+  const balance = Number(account.initial_balance) + income - expense + transferIn - transferOut;
+  return { ...account, balance };
 }
 
 export async function deleteAccount(client: SupabaseClient, userId: string, accountId: string): Promise<void> {

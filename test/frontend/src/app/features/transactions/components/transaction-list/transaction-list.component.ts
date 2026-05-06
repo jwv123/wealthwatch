@@ -31,6 +31,7 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
               <td>
                 {{ t.description }}
                 <span class="misc-badge" *ngIf="t.metadata?.is_misc">Misc</span>
+                <span class="recurring-badge" *ngIf="t.metadata?.recurring">Recurring</span>
               </td>
               <td>{{ getAccountName(t.account_id) }}</td>
               <td>{{ t.category?.name || 'Uncategorized' }}</td>
@@ -57,6 +58,9 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
                 {{ t.description }}
                 @if (t.metadata?.is_misc) {
                   <span class="misc-badge">Misc</span>
+                }
+                @if (t.metadata?.recurring) {
+                  <span class="recurring-badge">Recurring</span>
                 }
               </span>
               <span [class.ww-text-income]="t.type === 'income'" [class.ww-text-expense]="t.type === 'expense'"
@@ -113,6 +117,18 @@ import { WwDateFormatPipe } from '../../../../shared/pipes/date-format.pipe';
     .btn-sm {
       padding: 0.25rem 0.5rem;
       font-size: 0.75rem;
+    }
+    .recurring-badge {
+      display: inline-block;
+      background-color: rgba(var(--ww-blue-rgb), 0.08);
+      color: var(--ww-blue);
+      font-size: 0.625rem;
+      padding: 0.125rem 0.375rem;
+      border-radius: 3px;
+      margin-left: 0.5rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.03em;
     }
     .misc-badge {
       display: inline-block;

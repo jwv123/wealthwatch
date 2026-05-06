@@ -31,7 +31,7 @@ export const AccountStore = {
   }),
 
   totalBalance: computed(() =>
-    _state().accounts.reduce((sum, a) => sum + Number(a.balance), 0)
+    _state().accounts.reduce((sum, a) => sum + (Number(a.balance) || 0), 0)
   ),
 
   setAccounts: (accounts: Account[]) =>

@@ -13,6 +13,7 @@ const envSchema = z.object({
   CORS_ORIGIN: z.string().default('http://localhost:4200'),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(15 * 60 * 1000),
   RATE_LIMIT_MAX: z.coerce.number().default(100),
+  RECURRING_CRON_SECRET: z.string().min(1).default('dev-cron-secret'),
 });
 
 export const env = envSchema.parse(process.env);

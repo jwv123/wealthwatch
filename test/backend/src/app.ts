@@ -10,6 +10,8 @@ import accountsRoutes from './routes/accounts.routes';
 import transfersRoutes from './routes/transfers.routes';
 import transactionsRoutes from './routes/transactions.routes';
 import reportsRoutes from './routes/reports.routes';
+import recurringRoutes from './routes/recurring.routes';
+import cronRoutes from './routes/cron.routes';
 
 const app = express();
 
@@ -28,6 +30,8 @@ app.use('/api/accounts', accountsRoutes);
 app.use('/api/transfers', transfersRoutes);
 app.use('/api/transactions', transactionsRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/recurring', recurringRoutes);
+app.use('/api/cron', cronRoutes);
 
 app.use(errorHandler);
 

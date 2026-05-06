@@ -10,6 +10,7 @@ import { DashboardStore, PeriodScope } from '../../stores/dashboard.store';
 import { DashboardService } from './services/dashboard.service';
 import { AccountsService } from '../accounts/services/accounts.service';
 import { TransfersService } from '../transfers/services/transfers.service';
+import { RecurringService } from '../recurring/services/recurring.service';
 import { WwCurrencyPipe } from '../../shared/pipes/currency.pipe';
 import { WwDateFormatPipe } from '../../shared/pipes/date-format.pipe';
 import { NetBalanceCardComponent } from './components/net-balance-card/net-balance-card.component';
@@ -369,6 +370,7 @@ export class DashboardComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private accountsService = inject(AccountsService);
   private transfersService = inject(TransfersService);
+  private recurringService = inject(RecurringService);
   private http = inject(HttpClient);
 
   selectedAccountId = signal<string | null>(null);
@@ -405,6 +407,7 @@ export class DashboardComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.recurringService.processDue().subscribe(); // Fire-and-forget to generate due items
     this.loadTransactionsIfNeeded();
     this.loadCategoriesIfNeeded();
     this.loadAccountsIfNeeded();

@@ -6,6 +6,7 @@ import { AuthStore } from '../../stores/auth.store';
 import { TransactionStore } from '../../stores/transaction.store';
 import { CategoryStore } from '../../stores/category.store';
 import { DashboardStore } from '../../stores/dashboard.store';
+import { RecurringStore } from '../../stores/recurring.store';
 import { AuthService } from '../auth/auth.service';
 
 let isRefreshing = false;
@@ -30,6 +31,7 @@ function forceLogout(router: Router): void {
   TransactionStore.reset();
   CategoryStore.reset();
   DashboardStore.reset();
+  RecurringStore.reset();
   localStorage.removeItem('ww_token');
   localStorage.removeItem('ww_refresh_token');
   router.navigate(['/login']);

@@ -1,6 +1,12 @@
 {
   "buildCommand": "bash build-vercel.sh",
   "outputDirectory": "test/frontend/dist/wealthwatch/browser",
+  "crons": [
+    {
+      "path": "/api/cron/process-recurring",
+      "schedule": "0 6 * * *"
+    }
+  ],
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/index?__path=/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }

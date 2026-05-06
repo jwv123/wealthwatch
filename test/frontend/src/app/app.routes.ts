@@ -52,6 +52,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'recurring',
+        loadComponent: () =>
+          import('./features/recurring/recurring.component').then(
+            (m) => m.RecurringComponent
+          ),
+      },
+      {
         path: 'settings',
         loadComponent: () =>
           import('./features/settings/settings.component').then(
